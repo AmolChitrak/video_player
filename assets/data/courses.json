@@ -1,0 +1,245 @@
+[
+  {
+    "id": "course_1",
+    "title": "Fundamentals of Human Anatomy",
+    "title_ar": "أساسيات علم التشريح البشري",
+    "title_en": "Fundamentals of Human Anatomy",
+    "title_hi": "मानव शरीर रचना के मूल सिद्धांत",
+    "title_zh": "人体解剖学基础",
+    "instructor": "Dr. Ahmed Al-Mansouri",
+    "instructor_ar": "د. أحمد المنصوري",
+    "instructor_en": "Dr. Ahmed Al-Mansouri",
+    "instructor_hi": "डॉ. अहमद अल-मंसूरी",
+    "instructor_zh": "艾哈迈德·曼苏里博士",
+    "thumbnail": "assets/images/anatomy.png",
+    "description": "Comprehensive course for health sciences students covering anatomical fundamentals of the human body and key medical terms.",
+    "description_ar": "دورة شاملة لطلاب العلوم الصحية تغطي الأساسيات التشريحية لجسم الإنسان والمصطلحات الطبية الهامة.",
+    "description_en": "Comprehensive course for health sciences students covering anatomical fundamentals of the human body and key medical terms.",
+    "description_hi": "स्वास्थ्य विज्ञान के छात्रों के लिए व्यापक पाठ्यक्रम जिसमें मानव शरीर रचना के बुनियादी सिद्धांतों और प्रमुख चिकित्सा शब्दों को शामिल किया गया है।",
+    "description_zh": "面向健康科学专业学生的综合课程，涵盖人体解剖学基础知识和核心医学术语。",
+    "sections": [
+      {
+        "id": "sec_1_1",
+        "title": "Unit 1: Introduction & Anatomical Terminology",
+        "title_ar": "الوحدة الأولى: المقدمة والمصطلحات التشريحية",
+        "title_en": "Unit 1: Introduction & Anatomical Terminology",
+        "title_hi": "इकाई 1: परिचय और शारीरिक शब्दावली",
+        "title_zh": "第一单元：引言与解剖学术语",
+        "lessons": [
+          {
+            "id": "lesson_1_1",
+            "title": "Introduction to Anatomy & Body Planes",
+            "title_ar": "مقدمة في علم التشريح والمستويات الجسمية",
+            "title_en": "Introduction to Anatomy & Body Planes",
+            "title_hi": "शरीर रचना विज्ञान और शारीरिक तल का परिचय",
+            "title_zh": "解剖学与人体平面简介",
+            "durationSec": 68,
+            "video": "assets/videos/lesson_1_1.mp4"
+          },
+          {
+            "id": "lesson_1_2",
+            "title": "Medical Terminology & Directional Terms",
+            "title_ar": "المصطلحات الطبية والتجاهات التشريحية",
+            "title_en": "Medical Terminology & Directional Terms",
+            "title_hi": "चिकित्सा शब्दावली और दिशात्मक शब्द",
+            "title_zh": "医学术语与方位术语",
+            "durationSec": 64,
+            "video": "assets/videos/lesson_1_2.mp4"
+          }
+        ]
+      },
+      {
+        "id": "sec_1_2",
+        "title": "Unit 2: Skeletal & Muscular System",
+        "title_ar": "الوحدة الثانية: الجهاز الهيكلي والعضلي",
+        "title_en": "Unit 2: Skeletal & Muscular System",
+        "title_hi": "इकाई 2: कंकाल और मांसपेशीय प्रणाली",
+        "title_zh": "第二单元：骨骼与肌肉系统",
+        "lessons": [
+          {
+            "id": "lesson_1_3",
+            "title": "Bone Structure & Axial/Appendicular Skeleton",
+            "title_ar": "تركيب العظام والهيكل المحوري والطرفي",
+            "title_en": "Bone Structure & Axial/Appendicular Skeleton",
+            "title_hi": "हड्डी की संरचना और अक्षीय/उपांगीय कंकाल",
+            "title_zh": "骨骼结构与轴向/附肢骨骼",
+            "durationSec": 71,
+            "video": "assets/videos/lesson_1_3.mp4"
+          },
+          {
+            "id": "lesson_1_4",
+            "title": "Muscle Types & Mechanism of Contraction",
+            "title_ar": "أنواع العضلات وآلية الإنقباض العضلي",
+            "title_en": "Muscle Types & Mechanism of Contraction",
+            "title_hi": "मांसपेशियों के प्रकार और संकुचन की क्रियाविधि",
+            "title_zh": "肌肉类型与收缩机制",
+            "durationSec": 8,
+            "video": "assets/videos/lesson_1_4.mp4"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course_2",
+    "title": "Physiology - Cardiovascular System",
+    "title_ar": "علم وظائف الأعضاء - الجهاز الدوري",
+    "title_en": "Physiology - Cardiovascular System",
+    "title_hi": "शरीर क्रिया विज्ञान - हृदय प्रणाली",
+    "title_zh": "生理学 - 心血管系统",
+    "instructor": "Dr. Sarah Al-Kuwari",
+    "instructor_ar": "د. سارة الكواري",
+    "instructor_en": "Dr. Sarah Al-Kuwari",
+    "instructor_hi": "डॉ. सारा अल-कुवारी",
+    "instructor_zh": "萨拉·库瓦里博士",
+    "thumbnail": "assets/images/cardio.png",
+    "description": "In-depth study of heart functions, blood vessels, and blood circulation with clinical applications.",
+    "description_ar": "دراسة متعمقة لوظائف القلب، الأوعية الدموية، والدورة الدموية مع التطبيقات الإكلينيكية.",
+    "description_en": "In-depth study of heart functions, blood vessels, and blood circulation with clinical applications.",
+    "description_hi": "नैदानिक अनुप्रयोगों के साथ हृदय के कार्यों, रक्त वाहिकाओं और रक्त परिसंचरण का गहन अध्ययन।",
+    "description_zh": "深入研究心脏功能、血管和血液循环及其临床应用。",
+    "sections": [
+      {
+        "id": "sec_2_1",
+        "title": "Unit 1: Heart Structure & Circulation",
+        "title_ar": "الوحدة الأولى: تشريح القلب والدورة الدموية",
+        "title_en": "Unit 1: Heart Structure & Circulation",
+        "title_hi": "इकाई 1: हृदय की संरचना और परिसंचरण",
+        "title_zh": "第一单元：心脏结构与血液循环",
+        "lessons": [
+          {
+            "id": "lesson_2_1",
+            "title": "Heart Anatomy, Chambers & Valves",
+            "title_ar": "تركيب القلب وحجراته والصمامات الرئيسية",
+            "title_en": "Heart Anatomy, Chambers & Valves",
+            "title_hi": "हृदय की शारीरिक रचना, कक्ष और वाल्व",
+            "title_zh": "心脏解剖结构、心腔与瓣膜",
+            "durationSec": 10,
+            "video": "assets/videos/lesson_2_1.mp4"
+          },
+          {
+            "id": "lesson_2_2",
+            "title": "Systemic & Pulmonary Circulation",
+            "title_ar": "الدورة الدموية الكبرى (الجهازية) والصغرى (الرئوية)",
+            "title_en": "Systemic & Pulmonary Circulation",
+            "title_hi": "दैहिक और फुफ्फुसीय परिसंचरण",
+            "title_zh": "体循环与肺循环",
+            "durationSec": 66,
+            "video": "assets/videos/lesson_2_2.mp4"
+          }
+        ]
+      },
+      {
+        "id": "sec_2_2",
+        "title": "Unit 2: Blood Components & BP Regulation",
+        "title_ar": "الوحدة الثانية: مكونات الدم وتنظيم ضغط الدم",
+        "title_en": "Unit 2: Blood Components & BP Regulation",
+        "title_hi": "इकाई 2: रक्त के घटक और बीपी विनियमन",
+        "title_zh": "第二单元：血液成分与血压调节",
+        "lessons": [
+          {
+            "id": "lesson_2_3",
+            "title": "Blood Cells & Plasma Functions",
+            "title_ar": "خلايا الدم والبلازما ووظائفها الفسيولوجية",
+            "title_en": "Blood Cells & Plasma Functions",
+            "title_hi": "रक्त कोशिकाएं और प्लाज्मा के कार्य",
+            "title_zh": "血细胞与血浆生理功能",
+            "durationSec": 33,
+            "video": "assets/videos/lesson_2_3.mp4"
+          },
+          {
+            "id": "lesson_2_4",
+            "title": "Regulation of Blood Pressure & Pulse",
+            "title_ar": "تنظيم ضغط الدم الشرياني والنبض",
+            "title_en": "Regulation of Blood Pressure & Pulse",
+            "title_hi": "रक्तचाप और नाड़ी का विनियमन",
+            "title_zh": "动脉血压与脉搏的调节",
+            "durationSec": 65,
+            "video": "assets/videos/lesson_2_4.mp4"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "course_3",
+    "title": "Neuroscience - Nervous System",
+    "title_ar": "علم الأعصاب - الجهاز العصبي",
+    "title_en": "Neuroscience - Nervous System",
+    "title_hi": "तंत्रिका विज्ञान - तंत्रिका तंत्र",
+    "title_zh": "神经科学 - 神经系统",
+    "instructor": "Dr. Fatima Al-Rashidi",
+    "instructor_ar": "د. فاطمة الراشدي",
+    "instructor_en": "Dr. Fatima Al-Rashidi",
+    "instructor_hi": "डॉ. फातिमा अल-राशिदी",
+    "instructor_zh": "法蒂玛·拉希迪博士",
+    "thumbnail": "assets/images/neuro.png",
+    "description": "Comprehensive introduction to the central and peripheral nervous systems, neurons, synaptic transmission, and common neurological conditions.",
+    "description_ar": "مقدمة شاملة للجهاز العصبي المركزي والمحيطي، والخلايا العصبية، ونقل الإشارات العصبية، والحالات العصبية الشائعة.",
+    "description_en": "Comprehensive introduction to the central and peripheral nervous systems, neurons, synaptic transmission, and common neurological conditions.",
+    "description_hi": "केंद्रीय और परिधीय तंत्रिका तंत्र, न्यूरॉन्स, सिनैप्टिक ट्रांसमिशन और सामान्य न्यूरोलॉजिकल स्थितियों का व्यापक परिचय।",
+    "description_zh": "全面介绍中枢和外周神经系统、神经元、突触传递及常见神经系统疾病。",
+    "sections": [
+      {
+        "id": "sec_3_1",
+        "title": "Unit 1: Neurons & Synaptic Transmission",
+        "title_ar": "الوحدة الأولى: الخلايا العصبية والنقل السينابتي",
+        "title_en": "Unit 1: Neurons & Synaptic Transmission",
+        "title_hi": "इकाई 1: न्यूरॉन्स और सिनैप्टिक ट्रांसमिशन",
+        "title_zh": "第一单元：神经元与突触传递",
+        "lessons": [
+          {
+            "id": "lesson_3_1",
+            "title": "Structure of a Neuron & Types of Nerve Fibers",
+            "title_ar": "تركيب الخلية العصبية وأنواع الألياف العصبية",
+            "title_en": "Structure of a Neuron & Types of Nerve Fibers",
+            "title_hi": "न्यूरॉन की संरचना और तंत्रिका तंतुओं के प्रकार",
+            "title_zh": "神经元结构与神经纤维类型",
+            "durationSec": 71,
+            "video": "assets/videos/lesson_1_3.mp4"
+          },
+          {
+            "id": "lesson_3_2",
+            "title": "Action Potentials & Synaptic Signaling",
+            "title_ar": "جهد الفعل والإشارة السينابتية",
+            "title_en": "Action Potentials & Synaptic Signaling",
+            "title_hi": "एक्शन पोटेंशियल और सिनैप्टिक सिग्नलिंग",
+            "title_zh": "动作电位与突触信号传导",
+            "durationSec": 8,
+            "video": "assets/videos/lesson_1_4.mp4"
+          }
+        ]
+      },
+      {
+        "id": "sec_3_2",
+        "title": "Unit 2: Central & Peripheral Nervous System",
+        "title_ar": "الوحدة الثانية: الجهاز العصبي المركزي والمحيطي",
+        "title_en": "Unit 2: Central & Peripheral Nervous System",
+        "title_hi": "इकाई 2: केंद्रीय और परिधीय तंत्रिका तंत्र",
+        "title_zh": "第二单元：中枢与外周神经系统",
+        "lessons": [
+          {
+            "id": "lesson_3_3",
+            "title": "Brain Regions & Their Functions",
+            "title_ar": "مناطق الدماغ ووظائفها الرئيسية",
+            "title_en": "Brain Regions & Their Functions",
+            "title_hi": "मस्तिष्क के क्षेत्र और उनके कार्य",
+            "title_zh": "大脑区域及其主要功能",
+            "durationSec": 33,
+            "video": "assets/videos/lesson_2_3.mp4"
+          },
+          {
+            "id": "lesson_3_4",
+            "title": "Autonomic Nervous System: Sympathetic & Parasympathetic",
+            "title_ar": "الجهاز العصبي اللاإرادي: السمبثاوي والباراسمبثاوي",
+            "title_en": "Autonomic Nervous System: Sympathetic & Parasympathetic",
+            "title_hi": "स्वायत्त तंत्रिका तंत्र: सहानुभूति और परानुकंपी",
+            "title_zh": "自主神经系统：交感与副交感神经",
+            "durationSec": 65,
+            "video": "assets/videos/lesson_2_4.mp4"
+          }
+        ]
+      }
+    ]
+  }
+]
