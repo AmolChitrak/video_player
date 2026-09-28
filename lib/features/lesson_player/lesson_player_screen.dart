@@ -151,6 +151,9 @@ class _LessonPlayerScreenState extends ConsumerState<LessonPlayerScreen>
     }
   }
 
+  /// Only triggers a UI rebuild for playback-state changes (play/pause/buffer).
+  /// Progress saving is handled exclusively by the periodic _saveTimer to avoid
+  /// redundant writes on every video frame (can be 30-60 calls/sec).
   void _onVideoControllerUpdate() {
     if (!mounted || _controller == null) return;
     final value = _controller!.value;
@@ -163,7 +166,7 @@ class _LessonPlayerScreenState extends ConsumerState<LessonPlayerScreen>
       return;
     }
 
-    _saveProgressCurrentPosition();
+    // Only rebuild UI — saving is handled by the periodic timer
     setState(() {});
   }
 
@@ -244,56 +247,59 @@ class _LessonPlayerScreenState extends ConsumerState<LessonPlayerScreen>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
-    final langCode = ref.watch(localeProvider).languageCode;
-    final coursesAsync = ref.watch(coursesProvider);
+  // ── Private builder methods ──────────────────────────────────────────────
+
+  /// Builds the main body based on current player state (error / loading / player).
+  Widget _buildBody(AppLocalizations loc) {
+    if (_hasError) {
+      return Container(
+        color: AppColors.primaryDark,
+        child: ErrorView(
+          message: _errorMessage.isEmpty ? loc.errorLoadingVideo : _errorMessage,
+          onRetry: () {
+            setState(() {
+              _initializedLessonId = null;
+              _hasError = false;
+            });
+          },
+        ),
+      );
+    }
+
+    if (!_isInitialized || _controller == null) {
+      return LoadingView(
+        message: loc.loadingVideo,
+        textColor: Colors.white,
+      );
+    }
+
+    return _buildPlayerContent(loc);
+  }
+
+  /// Builds the video player + controls + notes section once initialized.
+  Widget _buildPlayerContent(AppLocalizations loc) {
+    final isBuffering = _controller!.value.isBuffering;
     final progressMap = ref.watch(progressMapProvider);
     final progressService = ref.watch(progressServiceProvider);
+    final coursesAsync = ref.watch(coursesProvider);
 
-    return coursesAsync.when(
-      loading: () => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-          title: Text(loc.appTitle),
-        ),
-        body: LoadingView(
-          message: loc.loadingVideo,
-          textColor: Colors.white,
-        ),
-      ),
-      error: (err, stack) => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: Colors.white,
-        ),
-        body: ErrorView(
-          message: loc.errorLoadingVideo,
-          onRetry: () => ref.refresh(coursesProvider),
-        ),
-      ),
+    return coursesAsync.maybeWhen(
       data: (courses) {
-        final course = courses.firstWhere(
-          (c) => c.id == widget.courseId,
-          orElse: () => courses.first,
-        );
-
-        final lesson = course.allLessons.firstWhere(
-          (l) => l.id == widget.lessonId,
-          orElse: () => course.allLessons.first,
-        );
-
-        // Instantly trigger player initialization for this lesson
-        if (_initializedLessonId != lesson.id && !_isInitializing) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _initializePlayerForLesson(lesson);
-          });
+        // Safe lookup — show error if course/lesson not found
+        final courseIndex = courses.indexWhere((c) => c.id == widget.courseId);
+        if (courseIndex == -1) {
+          return ErrorView(message: loc.courseNotFound);
         }
+        final course = courses[courseIndex];
 
+        final lessonIndex =
+            course.allLessons.indexWhere((l) => l.id == widget.lessonId);
+        if (lessonIndex == -1) {
+          return ErrorView(message: loc.lessonNotFound);
+        }
+        final lesson = course.allLessons[lessonIndex];
+
+        final langCode = ref.watch(localeProvider).languageCode;
         final nextLesson = progressService.getNextUnlockedLesson(
           currentLesson: lesson,
           course: course,
@@ -303,246 +309,259 @@ class _LessonPlayerScreenState extends ConsumerState<LessonPlayerScreen>
         final isCurrentCompleted =
             progressMap[lesson.id]?.isCompleted ?? false;
         final isFinalLesson = course.allLessons.last.id == lesson.id;
-
-        final lessonTitle = lesson.getTitle(langCode);
         final nextLessonTitle = nextLesson?.getTitle(langCode) ?? '';
 
-        return Scaffold(
-          backgroundColor: Colors.black,
-          appBar: _isFullscreen
-              ? null
-              : AppBar(
-                  backgroundColor: AppColors.primaryDark,
-                  foregroundColor: Colors.white,
-                  title: Text(
-                    lessonTitle,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    onPressed: () {
-                      _saveProgressCurrentPosition(force: true);
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/course/${widget.courseId}');
-                      }
-                    },
-                  ),
-                ),
-          body: () {
-            if (_hasError) {
-              return Container(
-                color: AppColors.primaryDark,
-                child: ErrorView(
-                  message: _errorMessage.isEmpty
-                      ? loc.errorLoadingVideo
-                      : _errorMessage,
-                  onRetry: () {
-                    setState(() {
-                      _initializedLessonId = null;
-                      _hasError = false;
-                    });
-                  },
-                ),
-              );
-            }
-
-            if (!_isInitialized || _controller == null) {
-              return LoadingView(
-                message: loc.loadingVideo,
-                textColor: Colors.white,
-              );
-            }
-
-            final isBuffering = _controller!.value.isBuffering;
-
-            return Column(
-              children: [
-                // ── Video Player Container ──────────────────────────────
-                SizedBox(
-                  height: _isFullscreen
-                      ? MediaQuery.of(context).size.height
-                      : (MediaQuery.of(context).size.width * 9 / 16)
-                          .clamp(200.0, 320.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showControls = !_showControls;
-                      });
-                      if (_showControls) {
-                        _startControlsHideTimer();
-                      }
-                    },
-                    child: Container(
-                      color: Colors.black,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Center(
-                            child: _controller!.value.isInitialized
-                                ? AspectRatio(
-                                    aspectRatio:
-                                        _controller!.value.aspectRatio > 0
-                                            ? _controller!.value.aspectRatio
-                                            : 16 / 9,
-                                    child: VideoPlayer(_controller!),
-                                  )
-                                : LoadingView(
-                                    message: loc.loadingVideo,
-                                    textColor: Colors.white,
+        return Column(
+          children: [
+            // ── Video Player Container ──────────────────────────────
+            SizedBox(
+              height: _isFullscreen
+                  ? MediaQuery.of(context).size.height
+                  : (MediaQuery.of(context).size.width * 9 / 16)
+                      .clamp(200.0, 320.0),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showControls = !_showControls;
+                  });
+                  if (_showControls) {
+                    _startControlsHideTimer();
+                  }
+                },
+                child: Container(
+                  color: Colors.black,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Center(
+                        child: _controller!.value.isInitialized
+                            ? AspectRatio(
+                                aspectRatio:
+                                    _controller!.value.aspectRatio > 0
+                                        ? _controller!.value.aspectRatio
+                                        : 16 / 9,
+                                child: VideoPlayer(_controller!),
+                              )
+                            : LoadingView(
+                                message: loc.loadingVideo,
+                                textColor: Colors.white,
+                              ),
+                      ),
+                      // Buffering Overlay
+                      if (isBuffering)
+                        Positioned.fill(
+                          child: Container(
+                            color: Colors.black54,
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const CircularProgressIndicator(
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary,
+                                    ),
                                   ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    loc.loadingVideo,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          // Buffering Overlay
-                          if (isBuffering)
-                            Positioned.fill(
-                              child: Container(
-                                color: Colors.black54,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                        ),
+                      // Video Controls Overlay
+                      if (_showControls)
+                        Positioned.fill(
+                          child: VideoControls(
+                            controller: _controller!,
+                            isFullscreen: _isFullscreen,
+                            onToggleFullscreen: _toggleFullscreen,
+                            currentSpeed: _playbackSpeed,
+                            onSpeedChanged: _setPlaybackSpeed,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Scrollable Bottom Section (footer + notes) ─────────
+            if (!_isFullscreen)
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // Next Lesson / Completion Banner
+                        Container(
+                          color: Theme.of(context).cardTheme.color,
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isFinalLesson && isCurrentCompleted) ...[
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success.withAlpha(25),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: AppColors.success),
+                                  ),
+                                  child: Row(
                                     children: [
-                                      const CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                          AppColors.primary,
-                                        ),
+                                      const Icon(
+                                        Icons.workspace_premium_rounded,
+                                        color: AppColors.success,
+                                        size: 28,
                                       ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        loc.loadingVideo,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          loc.completedCourse,
+                                          style: const TextStyle(
+                                            color: AppColors.success,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ),
-                            ),
-                          // Video Controls Overlay
-                          if (_showControls)
-                            Positioned.fill(
-                              child: VideoControls(
-                                controller: _controller!,
-                                isFullscreen: _isFullscreen,
-                                onToggleFullscreen: _toggleFullscreen,
-                                currentSpeed: _playbackSpeed,
-                                onSpeedChanged: _setPlaybackSpeed,
-                              ),
-                            ),
-                        ],
-                      ),
+                              ] else if (nextLesson != null) ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () {
+                                      _saveProgressCurrentPosition(
+                                          force: true);
+                                      context.go(
+                                        '/course/${widget.courseId}/lesson/${nextLesson.id}',
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                        Icons.skip_next_rounded),
+                                    label: Text(
+                                      '${loc.nextLesson}: $nextLessonTitle',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        // Per-Lesson Notes Widget
+                        LessonNotesWidget(lessonId: widget.lessonId),
+
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
                 ),
-
-                // ── Scrollable Bottom Section (footer + notes) ─────────
-                if (!_isFullscreen)
-                  Expanded(
-                    child: Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          children: [
-                            // Next Lesson / Completion Banner
-                            Container(
-                              color: Theme.of(context).cardTheme.color,
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isFinalLesson && isCurrentCompleted) ...[
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            AppColors.success.withAlpha(25),
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: AppColors.success),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.workspace_premium_rounded,
-                                            color: AppColors.success,
-                                            size: 28,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              loc.completedCourse,
-                                              style: const TextStyle(
-                                                color: AppColors.success,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ] else if (nextLesson != null) ...[
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 50,
-                                      child: ElevatedButton.icon(
-                                        onPressed: () {
-                                          _saveProgressCurrentPosition(
-                                              force: true);
-                                          context.go(
-                                            '/course/${widget.courseId}/lesson/${nextLesson.id}',
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.primary,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(14),
-                                          ),
-                                        ),
-                                        icon: const Icon(
-                                            Icons.skip_next_rounded),
-                                        label: Text(
-                                          '${loc.nextLesson}: $nextLessonTitle',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            // Per-Lesson Notes Widget
-                            LessonNotesWidget(lessonId: widget.lessonId),
-
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }(),
+              ),
+          ],
         );
       },
+      orElse: () => LoadingView(
+        message: loc.loadingVideo,
+        textColor: Colors.white,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final langCode = ref.watch(localeProvider).languageCode;
+    final coursesAsync = ref.watch(coursesProvider);
+
+    // Resolve lesson from courses — trigger player init once ready
+    coursesAsync.whenData((courses) {
+      final courseIndex = courses.indexWhere((c) => c.id == widget.courseId);
+      if (courseIndex == -1) return;
+      final course = courses[courseIndex];
+
+      final lessonIndex =
+          course.allLessons.indexWhere((l) => l.id == widget.lessonId);
+      if (lessonIndex == -1) return;
+      final lesson = course.allLessons[lessonIndex];
+
+      if (_initializedLessonId != lesson.id && !_isInitializing) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _initializePlayerForLesson(lesson);
+        });
+      }
+    });
+
+    // Derive lesson title for AppBar (safe, with fallback)
+    final lessonTitle = coursesAsync.maybeWhen(
+      data: (courses) {
+        final courseIndex = courses.indexWhere((c) => c.id == widget.courseId);
+        if (courseIndex == -1) return loc.appTitle;
+        final course = courses[courseIndex];
+        final lessonIndex =
+            course.allLessons.indexWhere((l) => l.id == widget.lessonId);
+        if (lessonIndex == -1) return loc.appTitle;
+        return course.allLessons[lessonIndex].getTitle(langCode);
+      },
+      orElse: () => loc.appTitle,
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: _isFullscreen
+          ? null
+          : AppBar(
+              backgroundColor: AppColors.primaryDark,
+              foregroundColor: Colors.white,
+              title: Text(
+                lessonTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () {
+                  _saveProgressCurrentPosition(force: true);
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/course/${widget.courseId}');
+                  }
+                },
+              ),
+            ),
+      body: _buildBody(loc),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class SpeedSelector extends StatelessWidget {
   final double currentSpeed;
@@ -16,9 +16,10 @@ class SpeedSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return PopupMenuButton<double>(
       initialValue: currentSpeed,
-      tooltip: AppStrings.speedLabel,
+      tooltip: loc.speedLabel,
       onSelected: onSpeedChanged,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

@@ -26,9 +26,27 @@ void main() {
         isFalse,
       );
 
+      // Boundary: exact 90%
+      expect(
+        progressService.isCompleted(currentPositionSec: 45, durationSec: 50),
+        isTrue,
+      );
+
+      // 100% position is completed
+      expect(
+        progressService.isCompleted(currentPositionSec: 100, durationSec: 100),
+        isTrue,
+      );
+
       // Edge case: zero duration
       expect(
         progressService.isCompleted(currentPositionSec: 10, durationSec: 0),
+        isFalse,
+      );
+
+      // Edge case: negative duration
+      expect(
+        progressService.isCompleted(currentPositionSec: 10, durationSec: -5),
         isFalse,
       );
     });
@@ -149,11 +167,20 @@ void main() {
 
       // Complete 3 out of 6 lessons
       progressMap['lesson_0'] = LessonProgress(
-          lessonId: 'lesson_0', isCompleted: true, lastUpdated: DateTime.now());
+        lessonId: 'lesson_0',
+        isCompleted: true,
+        lastUpdated: DateTime.now(),
+      );
       progressMap['lesson_1'] = LessonProgress(
-          lessonId: 'lesson_1', isCompleted: true, lastUpdated: DateTime.now());
+        lessonId: 'lesson_1',
+        isCompleted: true,
+        lastUpdated: DateTime.now(),
+      );
       progressMap['lesson_2'] = LessonProgress(
-          lessonId: 'lesson_2', isCompleted: true, lastUpdated: DateTime.now());
+        lessonId: 'lesson_2',
+        isCompleted: true,
+        lastUpdated: DateTime.now(),
+      );
 
       // Should equal 50.0%
       expect(
@@ -162,6 +189,24 @@ void main() {
           progressMap: progressMap,
         ),
         equals(50.0),
+      );
+
+      // Complete remaining 3 lessons
+      for (int i = 3; i < 6; i++) {
+        progressMap['lesson_$i'] = LessonProgress(
+          lessonId: 'lesson_$i',
+          isCompleted: true,
+          lastUpdated: DateTime.now(),
+        );
+      }
+
+      // Should equal 100.0%
+      expect(
+        progressService.calculateCourseProgress(
+          course: course,
+          progressMap: progressMap,
+        ),
+        equals(100.0),
       );
     });
 
@@ -182,6 +227,172 @@ void main() {
         ),
         equals(0.0),
       );
+    });
+
+    test('FR-05: getContinueWatchingLesson returns last played unfinished lesson', () {
+      const lesson1 = Lesson(id: 'l1', title: 'L1', durationSec: 100, video: 'v1.mp4');
+      const lesson2 = Lesson(id: 'l2', title: 'L2', durationSec: 100, video: 'v2.mp4');
+      const course = Course(
+        id: 'c1',
+        title: 'Course 1',
+        instructor: 'Teacher',
+        thumbnail: 'thumb.png',
+        description: 'Desc',
+        sections: [
+          Section(id: 's1', title: 'Section 1', lessons: [lesson1, lesson2]),
+        ],
+      );
+
+      final progressMap = <String, LessonProgress>{
+        'l1': LessonProgress(
+          lessonId: 'l1',
+          lastPositionSec: 100,
+          isCompleted: true,
+          lastUpdated: DateTime.now(),
+        ),
+        'l2': LessonProgress(
+          lessonId: 'l2',
+          lastPositionSec: 30,
+          isCompleted: false,
+          lastUpdated: DateTime.now(),
+        ),
+      };
+
+      final result = progressService.getContinueWatchingLesson(
+        courses: [course],
+        progressMap: progressMap,
+        lastPlayedLessonId: 'l2',
+      );
+
+      expect(result, isNotNull);
+      expect(result!.course.id, equals('c1'));
+      expect(result.lesson.id, equals('l2'));
+    });
+
+    test('FR-05: getContinueWatchingLesson falls back to first unlocked unfinished lesson', () {
+      const lesson1 = Lesson(id: 'l1', title: 'L1', durationSec: 100, video: 'v1.mp4');
+      const lesson2 = Lesson(id: 'l2', title: 'L2', durationSec: 100, video: 'v2.mp4');
+      const course = Course(
+        id: 'c1',
+        title: 'Course 1',
+        instructor: 'Teacher',
+        thumbnail: 'thumb.png',
+        description: 'Desc',
+        sections: [
+          Section(id: 's1', title: 'Section 1', lessons: [lesson1, lesson2]),
+        ],
+      );
+
+      final result = progressService.getContinueWatchingLesson(
+        courses: [course],
+        progressMap: {},
+        lastPlayedLessonId: null,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.course.id, equals('c1'));
+      expect(result.lesson.id, equals('l1'));
+    });
+
+    test('FR-17: getNextUnlockedLesson returns next lesson when unlocked', () {
+      const lesson1 = Lesson(id: 'l1', title: 'L1', durationSec: 100, video: 'v1.mp4');
+      const lesson2 = Lesson(id: 'l2', title: 'L2', durationSec: 100, video: 'v2.mp4');
+      const course = Course(
+        id: 'c1',
+        title: 'Course 1',
+        instructor: 'Teacher',
+        thumbnail: 'thumb.png',
+        description: 'Desc',
+        sections: [
+          Section(id: 's1', title: 'Section 1', lessons: [lesson1, lesson2]),
+        ],
+      );
+
+      final progressMap = <String, LessonProgress>{
+        'l1': LessonProgress(
+          lessonId: 'l1',
+          lastPositionSec: 100,
+          isCompleted: true,
+          lastUpdated: DateTime.now(),
+        ),
+      };
+
+      final next = progressService.getNextUnlockedLesson(
+        currentLesson: lesson1,
+        course: course,
+        progressMap: progressMap,
+      );
+
+      expect(next, isNotNull);
+      expect(next!.id, equals('l2'));
+    });
+
+    test('FR-17: getNextUnlockedLesson returns null on last lesson', () {
+      const lesson1 = Lesson(id: 'l1', title: 'L1', durationSec: 100, video: 'v1.mp4');
+      const course = Course(
+        id: 'c1',
+        title: 'Course 1',
+        instructor: 'Teacher',
+        thumbnail: 'thumb.png',
+        description: 'Desc',
+        sections: [
+          Section(id: 's1', title: 'Section 1', lessons: [lesson1]),
+        ],
+      );
+
+      final next = progressService.getNextUnlockedLesson(
+        currentLesson: lesson1,
+        course: course,
+        progressMap: {},
+      );
+
+      expect(next, isNull);
+    });
+  });
+
+  group('LessonProgress Model Tests', () {
+    test('LessonProgress toJson and fromJson serialization round-trip', () {
+      final now = DateTime.now();
+      final original = LessonProgress(
+        lessonId: 'lesson_test_101',
+        lastPositionSec: 42,
+        isCompleted: true,
+        playbackSpeed: 1.5,
+        lastUpdated: now,
+      );
+
+      final jsonMap = original.toJson();
+      final deserialized = LessonProgress.fromJson(jsonMap);
+
+      expect(deserialized.lessonId, equals(original.lessonId));
+      expect(deserialized.lastPositionSec, equals(original.lastPositionSec));
+      expect(deserialized.isCompleted, equals(original.isCompleted));
+      expect(deserialized.playbackSpeed, equals(original.playbackSpeed));
+      expect(
+        deserialized.lastUpdated.millisecondsSinceEpoch,
+        equals(original.lastUpdated.millisecondsSinceEpoch),
+      );
+    });
+
+    test('LessonProgress copyWith updates only specified fields', () {
+      final original = LessonProgress(
+        lessonId: 'l1',
+        lastPositionSec: 10,
+        isCompleted: false,
+        playbackSpeed: 1.0,
+        lastUpdated: DateTime(2026, 1, 1),
+      );
+
+      final updated = original.copyWith(
+        lastPositionSec: 50,
+        isCompleted: true,
+      );
+
+      expect(updated.lessonId, equals('l1'));
+      expect(updated.lastPositionSec, equals(50));
+      expect(updated.isCompleted, isTrue);
+      expect(updated.playbackSpeed, equals(1.0));
+      expect(updated.lastUpdated, equals(DateTime(2026, 1, 1)));
     });
   });
 }

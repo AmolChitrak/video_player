@@ -154,15 +154,15 @@ class _LessonNotesWidgetState extends ConsumerState<LessonNotesWidget> {
                     color: AppColors.success.withAlpha(20),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_rounded,
+                      const Icon(Icons.check_rounded,
                           color: AppColors.success, size: 14),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
-                        'Saved',
-                        style: TextStyle(
+                        AppLocalizations.of(context).noteSaved.split('!').first,
+                        style: const TextStyle(
                           color: AppColors.success,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
